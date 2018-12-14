@@ -9,6 +9,13 @@ import android.widget.ProgressBar;
 
 import com.example.umarr.chessapp.R;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 public class MainActivity extends AppCompatActivity {
 
     public static ProgressBar progressBar;
@@ -40,6 +47,25 @@ public class MainActivity extends AppCompatActivity {
               //  startActivity(intent);
             }
         });
+
+        try {
+            FileInputStream inputStream = openFileInput("savedGames");
+            int c;
+            String temp="";
+            while( (c = inputStream.read()) != -1){
+                temp = temp + Character.toString((char)c);
+            }
+
+            JSONObject test = new JSONObject(temp);
+
+            System.out.println("!!!!   " + test);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
     }
 }

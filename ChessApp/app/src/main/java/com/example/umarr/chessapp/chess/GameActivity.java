@@ -36,6 +36,9 @@ import org.json.JSONObject;
 import org.w3c.dom.Text;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -123,6 +126,7 @@ public class GameActivity extends AppCompatActivity {
         setContentView(R.layout.game_activity);
 
 
+
         AlertDialog.Builder builder = new AlertDialog.Builder(currContext);
         builder.setTitle("How to play");
         builder.setMessage("To make a move, tap a piece, then the spot you want to move to, then press move. Click help to have the computer make the move for you.");
@@ -175,9 +179,9 @@ public class GameActivity extends AppCompatActivity {
             public void onClick(View view){
                 if (isWhiteTurn){
                     computerMove("white");
-                } else
+                } else {
                     computerMove("black");
-
+                }
                 undoButton.setEnabled(true);
             }
         });
@@ -241,6 +245,10 @@ public class GameActivity extends AppCompatActivity {
                         public void onClick(DialogInterface dialog, int which) {
                             drawRequestedNum = 2;
                             drawNotification.setVisibility(View.VISIBLE);
+                            if (isWhiteTurn){
+                                savedInstructions.add("draw requested white");
+                            } else
+                                savedInstructions.add("draw requested black");
                         }
                     });
 
@@ -259,7 +267,10 @@ public class GameActivity extends AppCompatActivity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             drawText.setVisibility(View.INVISIBLE);
-                            savedInstructions.add("draw accepted");
+                            if (isWhiteTurn){
+                                savedInstructions.add("draw accepted white");
+                            } else
+                                savedInstructions.add("draw accepted black");
                             endGame("draw",false);
                         }
                     });
@@ -285,10 +296,13 @@ public class GameActivity extends AppCompatActivity {
                 builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if (isWhiteTurn)
-                            endGame("Black",false);
-                        else
-                            endGame("White",false);
+                        if (isWhiteTurn) {
+                            savedInstructions.add("resign white");
+                            endGame("Black", false);
+                        }else {
+                            savedInstructions.add("resign black");
+                            endGame("White", false);
+                        }
                     }
                 });
 
@@ -682,20 +696,19 @@ public class GameActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View view){
                         saveName = editText.getText().toString();
-
-                        File file = new File("hello.txt");
-                        try {
-                            file.createNewFile();
-                        } catch (IOException e) {
-                            System.out.println("YERRR");
-                            e.printStackTrace();
-                        }
+                        nameDialog.cancel();
 
                         try {
 
+                            FileOutputStream outputStream = openFileOutput("savedGames", Context.MODE_PRIVATE);
 
+                            /*File file = currContext.getFileStreamPath("savedGames");
+                            if (!file.exists()){
+                                System.out.println("AAAAAYYYYEEEEE");
+                            } else {
+                                 outputStream = openFileOutput("savedGames", Context.MODE_PRIVATE);
+                            }*/
 
-                            FileWriter fileWriter = new FileWriter("savedGames.txt");
                             JSONObject gameSave = new JSONObject();
                             gameSave.put("Name",saveName);
 
@@ -704,7 +717,8 @@ public class GameActivity extends AppCompatActivity {
                                 instructions.put(instruction);
                             }
                             gameSave.put("Instructions",instructions);
-                            fileWriter.write(gameSave.toString());
+                            outputStream.write(gameSave.toString().getBytes());
+                            outputStream.close();
 
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -717,7 +731,6 @@ public class GameActivity extends AppCompatActivity {
 
                         // create json format save (like song library) grouped by save name containing savedInstructions array
 
-                        nameDialog.cancel();
 
                         // take user back to home
                         finish();
@@ -743,12 +756,12 @@ public class GameActivity extends AppCompatActivity {
                 Piece piece = board[i][j];
 
                 if (piece != null && piece.getColor().equals(color)) {
-                    first = letterConversion[piece.getX()]+piece.getY();
+                    first = letterConversion[piece.getX()]+(piece.getY()+1);
 
                     for (int m=0;m<=7;m++) {
                         for (int n=0;n<=7;n++) {
                             if (piece.move(m, n)) {
-                                second = letterConversion[m]+n;
+                                second = letterConversion[m]+(n+1);
                                 instruction = first+ " " + second;
                                 // promotion
                                 if (piece instanceof Pawn){
@@ -1214,17 +1227,19 @@ public class GameActivity extends AppCompatActivity {
 
                         dialog.show();
 
-                    }
+                    } else {
+                        // en passant
+                        if (((Pawn) piece).justMovedDouble) {
+                            pawnMovedDouble = 2;
+                            if (enPassantPawn != null)
+                                ((Pawn)enPassantPawn).justMovedDouble = false;
+                            enPassantPawn = piece;
 
-                    // en passant
-                    if (((Pawn) piece).justMovedDouble) {
-                        pawnMovedDouble = 2;
-                        if (enPassantPawn != null)
-                            ((Pawn)enPassantPawn).justMovedDouble = false;
-                        enPassantPawn = piece;
-
+                        }
                         savedInstructions.add(instruction);
+
                     }
+
                 } else {
                     savedInstructions.add(instruction);
                 }
