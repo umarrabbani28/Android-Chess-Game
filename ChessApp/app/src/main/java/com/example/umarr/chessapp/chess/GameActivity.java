@@ -35,6 +35,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.w3c.dom.Text;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -700,14 +701,10 @@ public class GameActivity extends AppCompatActivity {
 
                         try {
 
-                            FileOutputStream outputStream = openFileOutput("savedGames", Context.MODE_PRIVATE);
+                            File directory = currContext.getFilesDir();
+                            File file = new File(directory, "savedGames");
 
-                            /*File file = currContext.getFileStreamPath("savedGames");
-                            if (!file.exists()){
-                                System.out.println("AAAAAYYYYEEEEE");
-                            } else {
-                                 outputStream = openFileOutput("savedGames", Context.MODE_PRIVATE);
-                            }*/
+                            BufferedWriter writer = new BufferedWriter(new FileWriter(file,true));
 
                             JSONObject gameSave = new JSONObject();
                             gameSave.put("Name",saveName);
@@ -717,8 +714,24 @@ public class GameActivity extends AppCompatActivity {
                                 instructions.put(instruction);
                             }
                             gameSave.put("Instructions",instructions);
+
+                            writer.write(gameSave.toString());
+
+                            writer.close();
+
+                           /* FileOutputStream outputStream = openFileOutput("savedGames", Context.MODE_APPEND);
+
+                            *//*File file = currContext.getFileStreamPath("savedGames");
+                            if (!file.exists()){
+                                System.out.println("AAAAAYYYYEEEEE");
+                            } else {
+                                 outputStream = openFileOutput("savedGames", Context.MODE_PRIVATE);
+                            }*//*
+
+
                             outputStream.write(gameSave.toString().getBytes());
-                            outputStream.close();
+                            outputStream.write(System.getProperty("line.separator").getBytes());
+                            outputStream.close();*/
 
                         } catch (IOException e) {
                             e.printStackTrace();
