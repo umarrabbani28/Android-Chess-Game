@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     public static ProgressBar progressBar;
     Context currContext = this;
     public static ArrayList<JSONObject> jsonObjects = new ArrayList<>();
+    public static ArrayList<String> names = new ArrayList<>();
 
 
     @Override
@@ -60,6 +61,10 @@ public class MainActivity extends AppCompatActivity {
             while ((input = reader.readLine()) != null) {
                 JSONObject jsonObject = new JSONObject(input);
                 jsonObjects.add(jsonObject);
+            }
+
+            for (JSONObject e: jsonObjects){
+                names.add(e.getString("Name"));
             }
 
                     /*ileInputStream inputStream = openFileInput("savedGames");
